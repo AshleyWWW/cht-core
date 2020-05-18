@@ -259,7 +259,9 @@ const fireConfiguredTriggers = (registrationConfig, doc) => {
         registrationConfig: registrationConfig,
         params: parseParams(event.params),
       };
-      logger.debug(`Parsed params for form "${options.form}", trigger "${event.trigger}, params: ${options.params}"`);
+      logger.debug(
+        `Parsed params for form "${registrationConfig.form}", trigger "${event.trigger}, params: ${options.params}"`
+      );
       return () => trigger(options);
     })
     .filter(item => !!item);

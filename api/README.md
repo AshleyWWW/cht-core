@@ -56,6 +56,9 @@ Node server to support the medic app.
 - [Hydrate](#hydrate)
   - [Example GET](#get-apiv1hydrate)
   - [Example POST](#post-apiv1hydrate)  
+- [Contacts by phone](#contacts-by-phone)
+  - [GET /api/v1/contacts-by-phone](#get-apiv1contacts-by-phone)
+  - [POST /api/v1/contacts-by-phone](#post-apiv1contacts-by-phone)  
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -1282,4 +1285,76 @@ Content-Type: application/json
   { "id": "missingId", "error": "not_found" },
   { "id": "id3", "doc": { <...the hydrated document...> } },
 ]
+```
+
+
+# Contacts by phone
+
+Accepts a phone number parameter and returns fully hydrated contacts that match the requested phone number.
+If multiple contacts are found, all are returned.  When no matches are found, a 404 error is returned.
+Supports both GET and POST. 
+Only allowed for users with "online" roles. 
+
+## GET api/v1/contacts-by-phone
+
+#### Query parameters
+
+| Name | Required | Description |   
+| -----  | -------- | ------ | 
+| phone | true | A URL encoded string representing a phone number |
+
+ 
+#### Example
+
+```
+GET /api/v1/contacts-by-phone?phone="%2B40+(744)+999+999"
+```
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "ok": true,
+  "docs": {
+    { <... first hydrated matching contact found ...> },
+    { <... second hydrated matching contact found ...> },
+    ...
+  }
+}
+```
+
+
+## POST api/v1/contacts-by-phone
+
+#### Parameters
+
+| Name | Required | Description |   
+| -----  | -------- | ------ | 
+| phone | true | A string representing a phone number |
+
+#### Example
+
+```
+POST /api/v1/contacts-by-phone
+Content-Type: application/json
+
+{
+  "phone": "+40 (21) 222-3333"
+}
+
+```
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "ok": true,
+  "docs": {
+    { <... first hydrated matching contact found ...> },
+    { <... second hydrated matching contact found ...> },
+    ...
+  }
+}
 ```
