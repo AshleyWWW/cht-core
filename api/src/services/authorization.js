@@ -24,6 +24,7 @@ const getDepth = (userCtx) => {
     return -1;
   }
   let depth = -1;
+  let reportDepth = -1;
   userCtx.roles.forEach(function(role) {
     // find the role with the deepest depth
     const setting = settings.find(setting => setting.role === role);
@@ -31,8 +32,16 @@ const getDepth = (userCtx) => {
     if (!isNaN(settingDepth) && settingDepth > depth) {
       depth = settingDepth;
     }
+    const settingsReportDepth = setting && parseInt(setting.reportDepth);
+    if (!isNaN(settingsReportDepth) && settingsReportDepth > reportDepth) {
+      reportDepth = settingsReportDepth;
+    }
   });
-  return depth;
+  if (depth === -1) {
+    reportDepth = -1;
+  }
+
+  return { depth, reportDepth };
 };
 
 const hasAccessToUnassignedDocs = (userCtx) => {
@@ -166,11 +175,21 @@ const allowedContact = (contactsByDepth, userContactsByDepthKeys) => {
   return viewResultKeys.some(viewResult => userContactsByDepthKeys.some(generated => _.isEqual(viewResult, generated)));
 };
 
-const getContextObject = (userCtx) => ({
-  userCtx,
-  contactsByDepthKeys: getContactsByDepthKeys(userCtx, module.exports.getDepth(userCtx)),
-  subjectIds: [ ALL_KEY, getUserSettingsId(userCtx.name) ]
-});
+const getContextObject = (userCtx) => {
+  const { depth, reportDepth } = module.exports.getDepth(userCtx);
+  const subjectsByDepth = [];
+  for (let i = 0; i <= depth; i++) {
+    subjectsByDepth[i] = [];
+  }
+  return {
+    userCtx,
+    contactsByDepthKeys: getContactsByDepthKeys(userCtx, depth),
+    subjectIds: [ ALL_KEY, getUserSettingsId(userCtx.name) ],
+    reportDepth,
+    depth,
+    subjectsByDepth,
+  };
+};
 
 const getAuthorizationContext = (userCtx) => {
   const authorizationCtx = getContextObject(userCtx);
