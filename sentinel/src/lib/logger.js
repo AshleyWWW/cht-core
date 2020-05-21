@@ -1,5 +1,5 @@
 const { createLogger, format, transports } = require('winston');
-const env = process.env.NODE_ENV || 'development';
+const env = process.env.NODE_ENV || 'developments';
 
 const enumerateErrorFormat = format(info => {
   if (info.message instanceof Error) {
@@ -28,7 +28,7 @@ const logger = createLogger({
   transports: [
     new transports.Console({
       // change level if in dev environment versus production
-      level: env === 'development' ? 'debug' : 'info',
+      level: env === 'development' ? 'debug' : 'warn',
       handleExceptions: true,
       format: format.combine(
         // https://github.com/winstonjs/winston/issues/1345

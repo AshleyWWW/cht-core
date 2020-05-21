@@ -36,7 +36,7 @@ const getProcessedSeq = () => {
 };
 
 const registerFeed = seq => {
-  logger.debug(`transitions: fetching changes feed, starting from ${seq}`);
+  logger.warn(`transitions: fetching changes feed, starting from ${seq}`);
   request = db.medic
     .changes({ live: true, since: seq })
     .on('change', change => {
@@ -45,12 +45,14 @@ const registerFeed = seq => {
 
         const queueSize = changeQueue.length();
         if (queueSize >= MAX_QUEUE_SIZE) {
-          logger.debug(`transitions: queue size ${queueSize} greater than ${MAX_QUEUE_SIZE}, we stop listening`);
+          logger.error(`transitions: queue size ${queueSize} greater than ${MAX_QUEUE_SIZE}, we stop listening`);
+          logger.error(change.seq);
           lastSeq = change.seq;
           request.cancel();
           request = null;
         }
 
+        logger.warn('enqueue ' + change.id);
         enqueue(change);
       }
     })
@@ -138,7 +140,7 @@ const changeQueue = async.queue((change, callback) => {
 });
 
 changeQueue.drain(() => {
-  logger.debug(`transitions: queue drained`);
+  logger.warn(`transitions: queue drained`);
   listen();
 });
 
@@ -160,7 +162,7 @@ module.exports = {
    * @param {Function} callback Called with a change Object.
    */
   listen: () => {
-    logger.info('transitions: processing enabled');
+    logger.warn('transitions: processing enabled');
     return listen();
   },
 
