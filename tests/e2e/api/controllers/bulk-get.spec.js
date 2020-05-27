@@ -1,3 +1,6 @@
+const chai = require('chai');
+const chaiExclude = require('chai-exclude');
+chai.use(chaiExclude);
 const _ = require('lodash');
 const utils = require('../../../utils');
 const constants = require('../../../constants');
@@ -114,22 +117,27 @@ describe('bulk-get handler', () => {
         return utils.requestOnTestDb(onlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(4);
-        expect(result.results[0].id).toEqual('ICanBeAnything');
-        expect(result.results[0].docs.length).toEqual(1);
-        expect(result.results[0].docs[0].ok).toBeTruthy();
+        chai.expect(result.results.length).to.equal(4);
 
-        expect(result.results[1].id).toEqual('NEW_PLACE');
-        expect(result.results[1].docs.length).toEqual(1);
-        expect(_.omit(result.results[1].docs[0].ok, '_rev')).toEqual(docs[1]);
+        chai.expect(result.results[0]).excludingEvery('_rev').to.deep.include({
+          id: 'ICanBeAnything',
+          docs: [{ ok: docs[0] }]
+        });
 
-        expect(result.results[2].id).toEqual('PARENT_PLACE');
-        expect(result.results[2].docs.length).toEqual(1);
-        expect(_.omit(result.results[2].docs[0].ok, '_rev', 'contact')).toEqual(parentPlace);
+        chai.expect(result.results[1]).excludingEvery('_rev').to.deep.include({
+          id: 'NEW_PLACE',
+          docs: [{ ok: docs[1] }]
+        });
 
-        expect(result.results[3].id).toEqual('org.couchdb.user:offline');
-        expect(result.results[3].docs.length).toEqual(1);
-        expect(result.results[3].docs[0].ok).toBeTruthy();
+        chai.expect(result.results[2]).to.deep.nested.include({
+          id: 'PARENT_PLACE',
+          'docs[0].ok._id': 'PARENT_PLACE'
+        });
+
+        chai.expect(result.results[3]).to.deep.nested.include({
+          id: 'org.couchdb.user:offline',
+          'docs[0].ok._id': 'org.couchdb.user:offline'
+        });
       });
   });
 
@@ -160,14 +168,16 @@ describe('bulk-get handler', () => {
         return utils.requestOnTestDb(offlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(2);
-        expect(result.results[0].id).toEqual('allowed_contact_1');
-        expect(result.results[0].docs.length).toEqual(1);
-        expect(result.results[0].docs[0].ok).toEqual(docs[0]);
-
-        expect(result.results[1].id).toEqual('allowed_contact_2');
-        expect(result.results[1].docs.length).toEqual(1);
-        expect(result.results[1].docs[0].ok).toEqual(docs[1]);
+        chai.expect(result.results).to.deep.equal([
+          {
+            id: 'allowed_contact_1',
+            docs: [{ ok: docs[0] }]
+          },
+          {
+            id: 'allowed_contact_2',
+            docs: [{ ok: docs[1] }]
+          }
+        ]);
       });
   });
 
@@ -208,9 +218,16 @@ describe('bulk-get handler', () => {
         return utils.requestOnTestDb(offlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(2);
-        expect(result.results[0].id).toEqual('allowed_task');
-        expect(result.results[1].id).toEqual('allowed_target');
+        chai.expect(result.results).excludingEvery('_rev').to.deep.equal([
+          {
+            id: 'allowed_task',
+            docs: [{ ok: docs[0] }],
+          },
+          {
+            id: 'allowed_target',
+            docs: [{ ok: docs[2] }],
+          }
+        ]);
 
         const supervisorRequestOptions = {
           path: '/_bulk_get',
@@ -221,9 +238,16 @@ describe('bulk-get handler', () => {
         return utils.requestOnTestDb(supervisorRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(2);
-        expect(result.results[0].id).toEqual('allowed_target');
-        expect(result.results[1].id).toEqual('denied_target');
+        chai.expect(result.results).excludingEvery('_rev').to.deep.equal([
+          {
+            id: 'allowed_target',
+            docs: [{ ok: docs[2] }],
+          },
+          {
+            id: 'denied_target',
+            docs: [{ ok: docs[3] }],
+          }
+        ]);
       });
   });
 
