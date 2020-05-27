@@ -371,10 +371,14 @@ const getScopedAuthorizationContext = (userCtx, scopeDocsCtx = []) => {
         return;
       }
 
-      authorizationCtx.subjectIds.push(getContactUuid(viewResults));
+      const contactDepth = getContactDepth(authorizationCtx, viewResults.contactsByDepth);
+      const contactUuid = getContactUuid(viewResults);
+      authorizationCtx.subjectIds.push(contactUuid);
+      authorizationCtx.subjectsDepth[contactUuid] = contactDepth;
       const shortcode = getContactShortcode(viewResults);
       if (shortcode) {
         authorizationCtx.subjectIds.push(shortcode);
+        authorizationCtx.subjectsDepth[shortcode] = contactDepth;
       }
     });
 

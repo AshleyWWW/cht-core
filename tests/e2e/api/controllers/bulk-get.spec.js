@@ -297,31 +297,52 @@ describe('bulk-get handler', () => {
         return utils.requestOnTestDb(offlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(4);
-
-        expect(result.results[0].id).toEqual('a1');
-        expect(result.results[0].docs.length).toEqual(1);
-        expect(result.results[0].docs[0].ok).toEqual(
-          { _id: 'a1', type: 'clinic', parent: { _id: 'fixture:offline' },
-            name: 'Allowed Contact 1', _rev: revs.a1[0] });
-
-        expect(result.results[1].id).toEqual('a1');
-        expect(result.results[1].docs.length).toEqual(1);
-        expect(result.results[1].docs[0].ok).toEqual(
-          { _id: 'a1', type: 'clinic', parent: { _id: 'fixture:offline' },
-            name: 'Allowed Contact 1', _rev: revs.a1[1] });
-
-        expect(result.results[2].id).toEqual('a2');
-        expect(result.results[2].docs.length).toEqual(1);
-        expect(result.results[2].docs[0].ok).toEqual(
-          { _id: 'a2', type: 'clinic', parent: { _id: 'fixture:offline' },
-            name: 'Allowed Contact 2', _rev: revs.a2[0] });
-
-        expect(result.results[3].id).toEqual('d2');
-        expect(result.results[3].docs.length).toEqual(1);
-        expect(result.results[3].docs[0].ok).toEqual(
-          { _id: 'd2', type: 'clinic', parent: { _id: 'fixture:offline' },
-            name: 'Previously denied Contact 2', _rev: revs.d2[1] });
+        chai.expect(result.results).to.deep.equal([
+          {
+            id: 'a1',
+            docs: [{
+              ok: {
+                _id: 'a1',
+                type: 'clinic',
+                parent: { _id: 'fixture:offline' },
+                name: 'Allowed Contact 1',
+                _rev: revs.a1[0]
+              }}],
+          },
+          {
+            id: 'a1',
+            docs: [{
+              ok: {
+                _id: 'a1',
+                type: 'clinic',
+                parent: { _id: 'fixture:offline' },
+                name: 'Allowed Contact 1',
+                _rev: revs.a1[1]
+              }}],
+          },
+          {
+            id: 'a2',
+            docs: [{
+              ok: {
+                _id: 'a2',
+                type: 'clinic',
+                parent: { _id: 'fixture:offline' },
+                name: 'Allowed Contact 2',
+                _rev: revs.a2[0]
+              }}],
+          },
+          {
+            id: 'd2',
+            docs: [{
+              ok: {
+                _id: 'd2',
+                type: 'clinic',
+                parent: { _id: 'fixture:offline' },
+                name: 'Previously denied Contact 2',
+                _rev: revs.d2[1]
+              }}],
+          },
+        ]);
       });
   });
 
@@ -343,44 +364,42 @@ describe('bulk-get handler', () => {
       }))
       .then(() => utils.requestOnTestDb(offlineRequestOptions))
       .then(result => {
-        expect(result.results.length).toEqual(2);
-        expect(result.results[0].id).toEqual('a1');
-        expect(result.results[0].docs[0].ok._attachments).toBeTruthy();
-        expect(result.results[0].docs[0].ok._attachments.att1.stub).toEqual(true);
-        expect(result.results[0].docs[0].ok._revisions).not.toBeTruthy();
+        chai.expect(result.results.length).to.equal(2);
 
-        expect(result.results[1].id).toEqual('a2');
-        expect(result.results[1].docs[0].ok._attachments).not.toBeTruthy();
-        expect(result.results[1].docs[0].ok._revisions).not.toBeTruthy();
+        chai.expect(result.results[0]).to.include({ id: 'a1' });
+        chai.expect(result.results[0].docs[0].ok).to.deep.nested.include({ '_attachments.att1.stub': true });
+        chai.expect(result.results[0].docs[0].ok._revisions).to.equal(undefined);
+
+        chai.expect(result.results[1]).to.include({ id: 'a2' });
+        chai.expect(result.results[1].docs[0].ok._attachments).to.equal(undefined);
+        chai.expect(result.results[1].docs[0].ok._revisions).to.equal(undefined);
 
         offlineRequestOptions.path = '/_bulk_get?revs=true&attachments=true';
         return utils.requestOnTestDb(offlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(2);
-        expect(result.results[0].id).toEqual('a1');
-        expect(result.results[0].docs[0].ok._attachments).toBeTruthy();
-        expect(result.results[0].docs[0].ok._attachments.att1.stub).not.toBeTruthy();
-        expect(result.results[0].docs[0].ok._revisions).toBeTruthy();
-        expect(result.results[0].docs[0].ok._revisions.ids.length).toEqual(5);
+        chai.expect(result.results.length).to.equal(2);
 
-        expect(result.results[1].id).toEqual('a2');
-        expect(result.results[1].docs[0].ok._attachments).not.toBeTruthy();
-        expect(result.results[1].docs[0].ok._revisions).toBeTruthy();
-        expect(result.results[1].docs[0].ok._revisions.ids.length).toEqual(4);
+        chai.expect(result.results[0]).to.include({ id: 'a1' });
+        chai.expect(result.results[0].docs[0].ok).to.have.deep.nested.property('_attachments.att1.data');
+        chai.expect(result.results[0].docs[0].ok._revisions.ids.length).to.equal(5);
+
+        chai.expect(result.results[1]).to.include({ id: 'a2' });
+        chai.expect(result.results[1].docs[0].ok._attachments).to.equal(undefined);
+        chai.expect(result.results[1].docs[0].ok._revisions.ids.length).to.equal(4);
 
         offlineRequestOptions.path = '/_bulk_get?revs=false';
         return utils.requestOnTestDb(offlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(2);
-        expect(result.results[0].id).toEqual('a1');
-        expect(result.results[0].docs[0].ok._attachments).toBeTruthy();
-        expect(result.results[0].docs[0].ok._revisions).not.toBeTruthy();
+        chai.expect(result.results.length).to.equal(2);
+        chai.expect(result.results[0]).to.include({ id: 'a1' });
+        chai.expect(result.results[0].docs[0].ok).to.deep.nested.include({ '_attachments.att1.stub': true });
+        chai.expect(result.results[0].docs[0].ok._revisions).to.equal(undefined);
 
-        expect(result.results[1].id).toEqual('a2');
-        expect(result.results[1].docs[0].ok._attachments).not.toBeTruthy();
-        expect(result.results[1].docs[0].ok._revisions).not.toBeTruthy();
+        chai.expect(result.results[1]).to.include({ id: 'a2' });
+        chai.expect(result.results[1].docs[0].ok._attachments).to.equal(undefined);
+        chai.expect(result.results[1].docs[0].ok._revisions).to.equal(undefined);
       });
   });
 
@@ -408,15 +427,20 @@ describe('bulk-get handler', () => {
         return utils.requestOnTestDb(offlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(3);
-        expect(result.results[0].id).toEqual('a1');
-        expect(result.results[0].docs).toEqual([{ ok: { _id: 'a1', _rev: docs[0]._rev, _deleted: true }}]);
-
-        expect(result.results[1].id).toEqual('a2');
-        expect(result.results[1].docs).toEqual([{ ok: { _id: 'a2', _rev: docs[1]._rev, _deleted: true }}]);
-
-        expect(result.results[2].id).toEqual('a3');
-        expect(result.results[2].docs).toEqual([{ ok: { _id: 'a3', _rev: docs[2]._rev, _deleted: true }}]);
+        chai.expect(result.results).to.deep.equal([
+          {
+            id: 'a1',
+            docs: [{ ok: { _id: 'a1', _rev: docs[0]._rev, _deleted: true }}],
+          },
+          {
+            id: 'a2',
+            docs: [{ ok: { _id: 'a2', _rev: docs[1]._rev, _deleted: true }}],
+          },
+          {
+            id: 'a3',
+            docs: [{ ok: { _id: 'a3', _rev: docs[2]._rev, _deleted: true }}],
+          }
+        ]);
       });
   });
 
@@ -447,14 +471,16 @@ describe('bulk-get handler', () => {
         return utils.requestOnMedicDb(offlineRequestOptions);
       })
       .then(result => {
-        expect(result.results.length).toEqual(2);
-        expect(result.results[0].id).toEqual('allowed_contact_1');
-        expect(result.results[0].docs.length).toEqual(1);
-        expect(result.results[0].docs[0].ok).toEqual(docs[0]);
-
-        expect(result.results[1].id).toEqual('allowed_contact_2');
-        expect(result.results[1].docs.length).toEqual(1);
-        expect(result.results[1].docs[0].ok).toEqual(docs[1]);
+        chai.expect(result.results).to.deep.equal([
+          {
+            id: 'allowed_contact_1',
+            docs: [{ ok: docs[0] }],
+          },
+          {
+            id: 'allowed_contact_2',
+            docs: [{ ok: docs[1] }],
+          },
+        ]);
       });
   });
 
@@ -491,13 +517,187 @@ describe('bulk-get handler', () => {
           .catch(err => err)
       ]))
       .then(results => {
-        expect(results.every(result => {
+        results.forEach(result => {
           if (result.results) {
-            return result.results.length === 0;
+            chai.expect(result.results.length).to.equal(0);
+          } else {
+            chai.expect(result.responseBody).to.equal('Server error');
           }
+        });
+      });
+  });
 
-          return result.responseBody === 'Server error';
-        })).toBe(true);
+  it('should work with replication depth', () => {
+    const existentDocs = [
+      {
+        _id: 'existing_clinic',
+        type: 'clinic',
+        parent: { _id: 'fixture:offline', parent: { _id: 'PARENT_PLACE' } },
+      },
+      {
+        _id: 'report_about_existing_clinic',
+        type: 'data_record',
+        form: 'form',
+        fields: { place_id: 'existing_clinic' },
+        contact: { _id: 'nevermind' },
+      },
+      {
+        _id: 'existing_person',
+        type: 'person',
+        parent: { _id: 'existing_clinic', parent: { _id: 'fixture:offline', parent: { _id: 'PARENT_PLACE' } } }
+      },
+      {
+        _id: 'denied_report_about_existing_person',
+        type: 'data_record',
+        form: 'form',
+        fields: { patient_id: 'existing_person' },
+        contact: { _id: 'nevermind' },
+      },
+      {
+        _id: 'allowed_report_about_existing_person',
+        type: 'data_record',
+        form: 'form',
+        fields: { patient_id: 'existing_person', needs_signoff: true },
+        contact: {
+          _id: 'existing_person',
+          parent: { _id: 'existing_clinic', parent: { _id: 'fixture:offline', parent: { _id: 'PARENT_PLACE' } } },
+        },
+      },
+      {
+        _id: 'allowed_task',
+        type: 'task',
+        user: 'org.couchdb.user:offline',
+      },
+      {
+        _id: 'denied_task',
+        type: 'task',
+        user: 'org.couchdb.user:other',
+      },
+      {
+        _id: 'allowed_target',
+        type: 'target',
+        owner: 'fixture:user:offline',
+      },
+      {
+        _id: 'denied_target',
+        type: 'target',
+        owner: 'existing_person',
+      },
+    ];
+
+    const settings = { replication_depth: [{ role: 'district_admin', depth: 1 }] };
+    return utils
+      .updateSettings(settings)
+      .then(() => utils.saveDocs(existentDocs))
+      .then(result => result.forEach((item, idx) => existentDocs[idx]._rev = item.rev))
+      .then(() => {
+        const docs = existentDocs.map(doc => ({ id: doc._id, rev: doc._rev }));
+        offlineRequestOptions.body = { docs };
+        return utils.requestOnMedicDb(offlineRequestOptions);
+      })
+      .then(result => {
+        const allowedIds = [
+          'existing_clinic',
+          'report_about_existing_clinic',
+          'allowed_report_about_existing_person',
+          'allowed_task',
+          'allowed_target',
+        ];
+        const expected = existentDocs
+          .filter(doc => allowedIds.includes(doc._id))
+          .map(doc => ({
+            id: doc._id,
+            docs: [{ ok: doc }]
+          }));
+        chai.expect(result.results).to.deep.equal(expected);
+      });
+  });
+
+  it('should work with report replication depth', () => {
+    const existentDocs = [
+      {
+        _id: 'existing_clinic',
+        type: 'clinic',
+        parent: { _id: 'fixture:offline', parent: { _id: 'PARENT_PLACE' } },
+      },
+      {
+        _id: 'report_about_existing_clinic',
+        type: 'data_record',
+        form: 'form',
+        fields: { place_id: 'existing_clinic' },
+        contact: { _id: 'nevermind' },
+      },
+      {
+        _id: 'existing_person',
+        type: 'person',
+        parent: { _id: 'existing_clinic', parent: { _id: 'fixture:offline', parent: { _id: 'PARENT_PLACE' } } }
+      },
+      {
+        _id: 'denied_report_about_existing_person',
+        type: 'data_record',
+        form: 'form',
+        fields: { patient_id: 'existing_person' },
+        contact: { _id: 'nevermind' },
+      },
+      {
+        _id: 'allowed_report_about_existing_person1',
+        type: 'data_record',
+        fields: { patient_id: 'existing_person' },
+        form: 'form',
+        contact: {
+          _id: 'fixture:user:offline',
+          parent: { _id: 'fixture:offline', parent: { _id: 'PARENT_PLACE' } },
+        },
+      },
+      {
+        _id: 'allowed_report_about_existing_person2',
+        type: 'data_record',
+        fields: { patient_id: 'existing_person', needs_signoff: true },
+        form: 'form',
+        contact: {
+          _id: 'existing_person',
+          parent: { _id: 'existing_clinic', parent: { _id: 'fixture:offline', parent: { _id: 'PARENT_PLACE' } } },
+        },
+      },
+      {
+        _id: 'allowed_target',
+        type: 'target',
+        owner: 'existing_person',
+      },
+      {
+        _id: 'denied_target',
+        type: 'target',
+        owner: 'whoever',
+      },
+    ];
+
+    const settings = { replication_depth: [{ role: 'district_admin', depth: 2, report_depth: 1 }] };
+    return utils
+      .updateSettings(settings)
+      .then(() => utils.saveDocs(existentDocs))
+      .then(result => result.forEach((item, idx) => existentDocs[idx]._rev = item.rev))
+      .then(() => {
+        const docs = existentDocs.map(doc => ({ id: doc._id, rev: doc._rev }));
+        offlineRequestOptions.body = { docs };
+        return utils.requestOnMedicDb(offlineRequestOptions);
+      })
+      .then(result => {
+        const allowedIds = [
+          'existing_clinic',
+          'report_about_existing_clinic',
+          'existing_person',
+          'allowed_report_about_existing_person1',
+          'allowed_report_about_existing_person2',
+          'allowed_target',
+        ];
+
+        const expected = existentDocs
+          .filter(doc => allowedIds.includes(doc._id))
+          .map(doc => ({
+            id: doc._id,
+            docs: [{ ok: doc }]
+          }));
+        chai.expect(result.results).to.deep.equal(expected);
       });
   });
 });

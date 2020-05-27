@@ -17,7 +17,7 @@ const baseConfig = {
   },
   seleniumAddress: 'http://localhost:4444/wd/hub',
   suites: {
-    e2e:'e2e/**/api/controllers/**/bulk-get*.js',
+    e2e:'e2e/**/api/controllers/**/*.js',
     performance: 'performance/**/*.js'
   },
   framework: 'jasmine2',
